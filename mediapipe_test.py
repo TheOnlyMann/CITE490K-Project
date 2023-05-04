@@ -10,7 +10,7 @@ mp_pose = mp.solutions.pose
 #initialize pose model
 pose = mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
 
-cap = cv2.VideoCapture("video/Don't Say Goodbye - Line Dance (Demo & Walk Through).mp4")
+cap = cv2.VideoCapture("C:/Users/ahn hyeontae/Videos/4K Video Downloader/Don't Say Goodbye - Line Dance (Demo & Walk Through).mp4")
 
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
