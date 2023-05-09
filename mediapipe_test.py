@@ -3,6 +3,10 @@ import cv2
 import mediapipe as mp
 import pandas as pd
 
+#stuff needed defined prior
+videoName = "C:/Users/ahn hyeontae/Videos/4K Video Downloader/Don't Say Goodbye - Line Dance (Demo & Walk Through).mp4"
+pose_det_conf = 0.5
+post_trk_conf = 0.5
 # Mediapipe Pose Model
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -10,7 +14,7 @@ mp_pose = mp.solutions.pose
 #initialize pose model
 pose = mp_pose.Pose(min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
 
-cap = cv2.VideoCapture("C:/Users/ahn hyeontae/Videos/4K Video Downloader/Don't Say Goodbye - Line Dance (Demo & Walk Through).mp4")
+cap = cv2.VideoCapture(videoName)
 
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -80,8 +84,25 @@ while True:
     cv2.imshow('Video', resized_frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+#destroying all windows and freeing the used Video
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 '''
 img = cv2.imread("images/text.jpg")
 cap = cv2.Videocapture("")
