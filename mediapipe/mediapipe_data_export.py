@@ -8,10 +8,14 @@ mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
 # Step 2: Specify the directory containing the videos
-videos_directory = "C:\Users\ahn hyeontae\OneDrive - postech.ac.kr\POSTECH 자료\2023-01\CITE490K 패브리케이션\video"
+videos_directory = "C:/Users/ahn hyeontae/OneDrive - postech.ac.kr/POSTECH 자료/2023-01/CITE490K 패브리케이션/video"
 
 # Step 3: Specify the subdirectory for CSV files
-csv_directory = "C:\Users\ahn hyeontae\Documents\GitHub\CITE490K-Project\csv_extraction"
+csv_directory = "C:/Users/ahn hyeontae/Documents/GitHub/CITE490K-Project/csv_extraction"
+
+# Specify the maximum allowed dimensions for the frame
+max_width = 720
+max_height = 480
 
 # Step 4: Set up MediaPipe Pose detection
 with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
@@ -53,7 +57,14 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
                                           connection_drawing_spec=mp_drawing.DrawingSpec(color=(0, 255, 0)))
 
                 # Display the resulting frame
-                cv2.imshow('Video Pose Detection', frame)
+                # Get the dimensions of the frame
+                frame_width = frame.shape[1]
+                frame_height = frame.shape[0]
+                aspect_ratio = min(max_width / frame_width, max_height / frame_height, 1)
+                new_width = int(frame_width * aspect_ratio)
+                new_height = int(frame_height * aspect_ratio)
+                new_frame = cv2.resize(frame, (new_width, new_height))
+                cv2.imshow('Video Pose Detection', new_frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
