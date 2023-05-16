@@ -19,7 +19,7 @@ max_height = 480
 
 mp_landmarks = ["nose", 
                 "left eye(inner)", "left eye","left eye(outer)",
-                "right eye(inner)""right eye","right eye(outer)"
+                "right eye(inner)","right eye","right eye(outer)",
                 "left ear",
                 "right ear",
                 "mouth(left)",
@@ -77,7 +77,7 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
                     landmarks = results.pose_landmarks.landmark
 
                     # Store the X, Y, and Z coordinates
-                    landmark_data = {"frame_data":cap.get(cv2.CAP_PROP_POS_FRAMES)}+{mp_landmarks[i]:[landmarks[i].x, landmarks[i].y, landmarks[i].z] for i in range(len(landmarks))}
+                    landmark_data = [cap.get(cv2.CAP_PROP_POS_FRAMES)]+[[landmarks[i].x, landmarks[i].y, landmarks[i].z] for i in range(len(landmarks))]
 
                     pose_data.append(landmark_data)
 
@@ -101,6 +101,10 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
 
             # Step 9: Create a pandas DataFrame from the pose data
             df = pd.DataFrame(pose_data)
+
+            # Set column names for the DataFrame
+            column_names = ["Frame"] + mp_landmarks
+            df.columns = column_names
 
             # Step 10: Create the output CSV file path in the specified subdirectory
             csv_filename = os.path.splitext(filename)[0] + ".csv"
