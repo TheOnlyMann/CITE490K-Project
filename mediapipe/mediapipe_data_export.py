@@ -17,6 +17,36 @@ csv_directory = "C:/Users/ahn hyeontae/Documents/GitHub/CITE490K-Project/csv_ext
 max_width = 720
 max_height = 480
 
+mp_landmarks = ["nose", 
+                "left eye(inner)", "left eye","left eye(outer)",
+                "right eye(inner)""right eye","right eye(outer)"
+                "left ear",
+                "right ear",
+                "mouth(left)",
+                "mouth(right)",
+                "left shoulder",
+                "right shoulder",
+                "left elbow",
+                "right elbow",
+                "left wrist",
+                "right wrist",
+                "left pinky",
+                "right pinky",
+                "left index",
+                "right index",
+                "left thumb",
+                "right thumb",
+                "left hip",
+                "right hip",
+                "left knee",
+                "right knee",
+                "left ankle",
+                "right ankle",
+                "left heel",
+                "right heel",
+                "left foot index",
+                "right foot index"]
+
 # Step 4: Set up MediaPipe Pose detection
 with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
     # Step 5: Iterate over the video files in the directory
@@ -47,7 +77,7 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
                     landmarks = results.pose_landmarks.landmark
 
                     # Store the X, Y, and Z coordinates
-                    landmark_data = [[landmark.x, landmark.y, landmark.z] for landmark in landmarks]
+                    landmark_data = {"frame_data":cap.get(cv2.CAP_PROP_POS_FRAMES)}+{mp_landmarks[i]:[landmarks[i].x, landmarks[i].y, landmarks[i].z] for i in range(len(landmarks))}
 
                     pose_data.append(landmark_data)
 
