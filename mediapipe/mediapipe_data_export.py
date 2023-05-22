@@ -46,6 +46,7 @@ mp_landmarks = ["nose",
                 "right heel",
                 "left foot index",
                 "right foot index"]
+req_lansmarks = [0, ]
 
 # Step 4: Set up MediaPipe Pose detection
 with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
@@ -77,7 +78,12 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
                     landmarks = results.pose_landmarks.landmark
 
                     # Store the X, Y, and Z coordinates
-                    landmark_data = [cap.get(cv2.CAP_PROP_POS_FRAMES)]+[[landmarks[i].x, landmarks[i].y, landmarks[i].z] for i in range(len(landmarks))]
+                    landmarks_pos = [f"{landmarks[i].x}/{landmarks[i].y}/{landmarks[i].z}" for i in range(len(landmarks))]
+                    landmarks_pos_avg = [sum([landmarks[i].x for i in [0]+list(range(7,len(landmarks)))])/(len(landmarks)-6),
+                                         sum([landmarks[i].y for i in [0]+list(range(7,len(landmarks)))])/(len(landmarks)-6),
+                                         sum([landmarks[i].z for i in [0]+list(range(7,len(landmarks)))])/(len(landmarks)-6)]
+
+                    landmark_data = [cap.get(cv2.CAP_PROP_POS_FRAMES), f"{landmarks_pos_avg[0]}/{landmarks_pos_avg[1]}/{landmarks_pos_avg[2]}"]+landmarks_pos
 
                     pose_data.append(landmark_data)
 
@@ -103,7 +109,7 @@ with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tra
             df = pd.DataFrame(pose_data)
 
             # Set column names for the DataFrame
-            column_names = ["Frame"] + mp_landmarks
+            column_names = ["Frame", "Centre"] + mp_landmarks
             df.columns = column_names
 
             # Step 10: Create the output CSV file path in the specified subdirectory
