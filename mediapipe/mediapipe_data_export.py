@@ -46,7 +46,7 @@ mp_landmarks = ["nose",
                 "right heel",
                 "left foot index",
                 "right foot index"]
-req_lansmarks = [0, ]
+
 
 # Step 4: Set up MediaPipe Pose detection
 with mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
