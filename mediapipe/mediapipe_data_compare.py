@@ -4,6 +4,9 @@ import mediapipe as mp
 import pandas as pd
 from difflib import SequenceMatcher
 
+# Step 1: set variables
+max_frame = 150
+min_sim_dist = 35
 # Step 3: Specify the subdirectory for CSV files
 csv_directory = "C:/Users/ahn hyeontae/Documents/GitHub/CITE490K-Project/csv_extraction"
 csv_files = [file for file in os.listdir(csv_directory) if file.endswith(".csv")]
