@@ -1,8 +1,7 @@
 import os
 import cv2
+import mediapipe as mp
 import pandas as pd
-from dtw import dtw
-import numpy as np
 from difflib import SequenceMatcher
 
 # Step 1: set variables
@@ -58,37 +57,60 @@ csv_path_f2 = os.path.join(csv_directory, msc_f2)
 df_f1=pd.read_csv(csv_path_f1)
 df_f2=pd.read_csv(csv_path_f2)
 
+def df_chk_dif(a,b):#gets two dataframe in, returns their average displacement and how to correct the latter one
+    if len(a)!= len(b): return -1
+    tot_sum=0
+    disp=[0,0,0]
+    for i in range(len(a)):
+        aic=a.iloc[i,1].split('/')
+        bic=b.iloc[i,1].split('/')
+        for j in list(range(8,len(a.columns))):
+            aij=a.iloc[i,j].split('/')
+            bij=b.iloc[i,j].split('/')
+            euc_sum = 0
+            for k in range(3):
+                euc_sum += abs((float(aij[k])-float(aic[k]))-(float(bij[k])-float(bic[k])))
+            if euc_sum > min_error_dist:#only add big changes
+                tot_sum+=euc_sum
+        for k in range(3):
+            disp[k]+=float(aic[k])/len(a)-float(bic[k])/len(a)
+    return tot_sum, disp
+        
+def df_pp(a,c):
+    for i in range(len(a)):
+        for j in list(range(2,len(a.columns))):
+            aij=a.iloc[i,j].split('/')
+            a.loc[i][j]=f"{float(aij[0])+c[0]}/{float(aij[1])+c[1]}/{float(aij[2])+c[2]}"
 
-# Define the distance function for DTW
-def distance(x, y):
-    x_coords = np.array([float(coord) for coord in x.split('/')])
-    y_coords = np.array([float(coord) for coord in y.split('/')])
-    return np.linalg.norm(x_coords - y_coords)
+def df_avg(a,b):
+    c=a.copy()
+    for i in range(len(a)):
+        for j in list(range(2,len(a.columns))):
+            aij=a.iloc[i,j].split('/')
+            bij=b.iloc[i,j].split('/')
+            c.loc[i][j]=f"{(float(aij[0])+float(bij[0]))/2}/{(float(aij[1])+float(bij[1]))/2}/{(float(aij[2])+float(bij[2]))/2}"
+    return c
 
-# Perform DTW between the first and second DataFrames
-dist, cost, acc, path = dtw(df_f1.iloc[:, 1:], df_f2.iloc[:, 1:], dist=distance)
-
-# Calculate the number of overlapping frames
-overlap_frames = len(df_f1) - path[-1][-1] + 1
-
-
-# Calculate average displacement for each coordinate (X, Y, Z)
-avg_displacement = df_f1.iloc[-overlap_frames:, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[0])).mean(), \
-                  df_f1.iloc[-overlap_frames:, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[1])).mean(), \
-                  df_f1.iloc[-overlap_frames:, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[2])).mean()
-
-# Apply displacement to the second DataFrame
-df_f2_corrected = df_f2.copy()
-df_f2_corrected.iloc[:overlap_frames, 1:] = (df_f2_corrected.iloc[:overlap_frames, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[0])) + avg_displacement[0]).astype(str) + '/' + \
-                                            (df_f2_corrected.iloc[:overlap_frames, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[1])) + avg_displacement[1]).astype(str) + '/' + \
-                                            (df_f2_corrected.iloc[:overlap_frames, 1:].apply(lambda x: pd.to_numeric(x.str.split('/').str[2])) + avg_displacement[2]).astype(str)
-
-# Combine the DataFrames
-combined_df = pd.concat([df_f1.head(len(df_f1) - overlap_frames), df_f2_corrected, df_f2.tail(len(df_f2) - overlap_frames)])
+min_state_dist = max_sim_dist
+min_state_disp =[0,0,0]
+min_state_over = 0
+for i in range(0,min(max_frame,len(df_f1),len(df_f2))):#do a for from 1 to maximum frames, which is about 5 seconds.
+    dt_f1 = df_f1.tail(i)
+    dt_f2 = df_f2.head(i)
+    #if i == 0 :#check for "zero"
+    state_dist, state_disp = df_chk_dif(dt_f1,dt_f2)
+    if not min_state_dist or i == 1 or min_state_dist>state_dist:
+        min_state_dist=state_dist
+        min_state_disp=state_disp
+        min_state_over=i
+    print(f"testing {i} frames overlapped, with accruacy {state_dist} and displacement {state_disp}")
+assert max_sim_dist>min_state_dist
+print(f"using {min_state_over} frames overlapped, with accruacy {min_state_dist} and displacement {min_state_disp}")
+df_pp(df_f2,min_state_disp)
+result=pd.concat([df_f1.head(len(df_f1)-min_state_over),df_avg(df_f1.tail(min_state_over),df_f2.head(min_state_over)),df_f1.tail(len(df_f2)-min_state_over)],axis=0)
 
 
-# Step 8: Save the combined DataFrame as a CSV file
 filefinal = input("Save as:")
 csv_filename = filefinal + ".csv"
 csv_path = os.path.join(csv_directory, csv_filename)
-combined_df.to_csv(csv_path, index=False)
+result.to_csv(csv_path, index=False)
